@@ -61,7 +61,7 @@
           show-size
           prepend-icon="mdi-camera"
         ></v-file-input>
-        
+
         <!-- Image Preview -->
         <div v-if="imagePreview" class="mb-4">
           <v-img
@@ -95,7 +95,20 @@
             :title="file.originalname"
           >
             <template v-slot:prepend>
-              <v-icon icon="mdi-file-image"></v-icon>
+              <v-img
+                :src="`https://simple-upload-sigma.vercel.app/api/files/public/${file.id}`"
+                width="60"
+                height="60"
+                cover
+                crossOrigin="anonymous"
+                alt="My Image"
+                class="rounded"
+                @error="handleImageError(file.id)"
+              >
+                <template v-slot:placeholder>
+                  <v-icon icon="mdi-image" size="30"></v-icon>
+                </template>
+              </v-img>
             </template>
             <template v-slot:append>
               <v-btn
@@ -118,27 +131,27 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth';
-import { useFilesStore } from '~/stores/files';
+import { useAuthStore } from "~/stores/auth";
+import { useFilesStore } from "~/stores/files";
 
 const authStore = useAuthStore();
 const filesStore = useFilesStore();
-const snackbar = inject('snackbar');
+const snackbar = inject("snackbar");
 
-const activeTab = ref('login');
+const activeTab = ref("login");
 const fileInput = ref<File | null>(null);
 const deletingId = ref<string | null>(null);
 const imagePreview = ref<string | null>(null);
 
 const loginForm = reactive({
-  email: '',
-  password: ''
+  email: "",
+  password: "",
 });
 
 const registerForm = reactive({
-  username: '',
-  email: '',
-  password: ''
+  username: "",
+  email: "",
+  password: "",
 });
 
 function handleFileChange(file: File | null) {
@@ -156,13 +169,13 @@ function handleFileChange(file: File | null) {
 async function handleLogin() {
   try {
     await authStore.login(loginForm.email, loginForm.password);
-    snackbar.text = 'Login successful';
-    snackbar.color = 'success';
+    snackbar.text = "Login successful";
+    snackbar.color = "success";
     snackbar.show = true;
     await filesStore.fetchFiles();
   } catch (error: any) {
     snackbar.text = error.message;
-    snackbar.color = 'error';
+    snackbar.color = "error";
     snackbar.show = true;
   }
 }
@@ -174,13 +187,13 @@ async function handleRegister() {
       registerForm.email,
       registerForm.password
     );
-    snackbar.text = 'Registration successful';
-    snackbar.color = 'success';
+    snackbar.text = "Registration successful";
+    snackbar.color = "success";
     snackbar.show = true;
     await filesStore.fetchFiles();
   } catch (error: any) {
     snackbar.text = error.message;
-    snackbar.color = 'error';
+    snackbar.color = "error";
     snackbar.show = true;
   }
 }
@@ -192,12 +205,12 @@ async function handleUpload() {
     await filesStore.uploadFile(fileInput.value);
     fileInput.value = null;
     imagePreview.value = null;
-    snackbar.text = 'File uploaded successfully';
-    snackbar.color = 'success';
+    snackbar.text = "File uploaded successfully";
+    snackbar.color = "success";
     snackbar.show = true;
   } catch (error: any) {
     snackbar.text = error.message;
-    snackbar.color = 'error';
+    snackbar.color = "error";
     snackbar.show = true;
   }
 }
@@ -206,16 +219,20 @@ async function handleDelete(id: string) {
   try {
     deletingId.value = id;
     await filesStore.deleteFile(id);
-    snackbar.text = 'File deleted successfully';
-    snackbar.color = 'success';
+    snackbar.text = "File deleted successfully";
+    snackbar.color = "success";
     snackbar.show = true;
   } catch (error: any) {
     snackbar.text = error.message;
-    snackbar.color = 'error';
+    snackbar.color = "error";
     snackbar.show = true;
   } finally {
     deletingId.value = null;
   }
+}
+
+function handleImageError(fileId: string) {
+  console.error(`Failed to load image for file ID: ${fileId}`);
 }
 
 // Fetch files if user is authenticated
